@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The Unfinished Web — spec surface vs. engine support</title>
+<style>
+:root{--bg:#0b0d10;--panel:#14181d;--line:#242a32;--fg:#e8edf3;--dim:#8b96a5;
+--chrome:#3f8cff;--safari:#19c2d6;--firefox:#ff7a45;--none:#4a525d;--ok:#38d39f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 -apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;padding:32px 36px 64px}
+h1{font-size:34px;margin:0 0 6px;letter-spacing:-.5px}
+.sub{color:var(--dim);max-width:74ch;margin:0 0 26px}
+a{color:var(--safari);text-decoration:none}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .n{font-size:30px;font-weight:650;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.tile .l{color:var(--dim);font-size:12.5px;margin-top:2px}
+.tile.hot .n{color:var(--firefox)}
+.bar{display:flex;height:38px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.bar div{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:650;color:#08121e;overflow:hidden;white-space:nowrap}
+.b0{background:var(--none);color:#dfe6ee!important}
+.b1{background:var(--firefox)}.b2{background:var(--safari)}.b3{background:var(--ok)}
+.legend{display:flex;gap:18px;color:var(--dim);font-size:12.5px;margin:10px 0 34px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);margin:0 0 12px;font-weight:600}
+.sole{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:34px}
+.sole .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.sole .n{font-size:26px;font-weight:650;font-variant-numeric:tabular-nums}
+.sole .who{font-size:12px;color:var(--dim);margin:4px 0 8px}
+.samp{font-size:12px;color:var(--dim);font-family:ui-monospace,Consolas,monospace;line-height:1.65;max-height:104px;overflow:hidden}
+.tools{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+input[type=search]{background:var(--panel);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 12px;width:340px;font-size:14px}
+select{background:var(--panel);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 10px;font-size:13px}
+.count{color:var(--dim);font-size:12.5px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--dim);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:1px;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+th.r,td.r{text-align:right}
+td{padding:7px 10px;border-bottom:1px solid #1a1f26;vertical-align:middle}
+tbody tr:hover{background:#161b22;cursor:pointer}
+.t{max-width:430px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sn{color:var(--dim);font-size:11.5px;font-family:ui-monospace,Consolas,monospace}
+.mini{display:flex;width:190px;height:9px;border-radius:3px;overflow:hidden;background:#1d232b}
+.mini div{height:100%}
+.pct{font-variant-numeric:tabular-nums}
+#panel{position:fixed;top:0;right:0;bottom:0;width:min(560px,92vw);background:#101419;border-left:1px solid var(--line);padding:26px 26px 40px;overflow:auto;transform:translateX(102%);transition:transform .18s ease;box-shadow:-24px 0 60px #0009}
+#panel.on{transform:none}
+#panel h3{margin:0 0 4px;font-size:19px}
+#panel .meta{color:var(--dim);font-size:12.5px;margin-bottom:16px}
+#panel ul{margin:0;padding-left:0;list-style:none;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+#panel li{padding:4px 0;border-bottom:1px solid #1a1f26;color:#cfd8e3}
+#panel li b{color:var(--firefox);font-weight:600}
+.close{position:absolute;top:18px;right:20px;background:none;border:0;color:var(--dim);font-size:22px;cursor:pointer}
+footer{margin-top:40px;color:var(--dim);font-size:12px;line-height:1.7;max-width:100ch;border-top:1px solid var(--line);padding-top:16px}
+</style></head><body>
+<h1>The Unfinished Web</h1>
+<p class="sub">Every API member declared in the WebIDL of <b id="s-specs"></b> Web specifications, cross-checked against MDN browser-compat-data: which ones are actually shipped, and by how many of the three engines.
+<br/><span id="s-iface" style="font-size:13px"></span></p>
+
+<div class="tiles">
+  <div class="tile"><div class="n" id="t-feat"></div><div class="l">API members scored<br/>(attributes, methods, constants)</div></div>
+  <div class="tile"><div class="n" id="t-all3"></div><div class="l">work in Chrome, Safari <i>and</i> Firefox</div></div>
+  <div class="tile hot"><div class="n" id="t-one"></div><div class="l">work in exactly one engine</div></div>
+  <div class="tile hot"><div class="n" id="t-zero"></div><div class="l">documented but shipped in no engine by default</div></div>
+</div>
+
+<h2>How much of each spec's surface actually ships</h2>
+<div class="bar" id="gbar"></div>
+<div class="legend">
+  <span><i class="b3"></i>3 of 3 engines</span><span><i class="b2"></i>2 of 3</span>
+  <span><i class="b1"></i>1 of 3</span><span><i class="b0"></i>0 of 3</span>
+  <span style="margin-left:auto">engines = Chrome + Safari + Firefox · flag-gated counts as not shipped</span>
+</div>
+
+<h2>Who ships alone</h2>
+<div class="sole" id="sole"></div>
+
+<h2>Specs ranked by unfinished surface</h2>
+<div class="tools">
+  <input type="search" id="q" placeholder="filter specs…"/>
+  <select id="sort">
+    <option value="gap">sort: most members missing from 2+ engines</option>
+    <option value="thin">sort: lowest share shipped everywhere</option>
+    <option value="n">sort: largest surface</option>
+    <option value="zero">sort: most members shipped nowhere</option>
+    <option value="t">sort: title A→Z</option>
+  </select>
+  <span class="count" id="cnt"></span>
+</div>
+<table><thead><tr>
+  <th data-k="t">Specification</th><th class="r" data-k="n">Members</th>
+  <th data-k="thin">0 / 1 / 2 / 3 engines</th><th class="r" data-k="all3">Shipped by all 3</th>
+</tr></thead><tbody id="rows"></tbody></table>
+
+<div id="panel"><button class="close" onclick="document.getElementById('panel').classList.remove('on')">×</button>
+  <h3 id="p-title"></h3><div class="meta" id="p-meta"></div>
+  <div class="meta">Members shipped by 1 engine or none:</div>
+  <ul id="p-list"></ul>
+</div>
+
+<footer id="prov"></footer>
+
+<script>
+const D = /*__DATA__*/;
+const M = D.meta, V = ["chrome","safari","firefox"];
+const fmt = n => n.toLocaleString("en-US");
+const pct = (a,b) => (100*a/b).toFixed(a/b>0.9?0:1) + "%";
+
+document.getElementById("s-specs").textContent = fmt(M.specs);
+document.getElementById("s-iface").textContent =
+  `${fmt(M.webrefInterfaces)} interfaces are declared in those specs; ${fmt(M.interfaces)} of them have any MDN compat record at all — the rest are scored nowhere.`;
+document.getElementById("t-feat").textContent = fmt(M.features);
+document.getElementById("t-all3").textContent = pct(M.buckets[3], M.features);
+document.getElementById("t-one").textContent = fmt(M.buckets[1]);
+document.getElementById("t-zero").textContent = fmt(M.buckets[0]);
+
+// global stacked bar
+const gb = document.getElementById("gbar");
+[[0,"b0"],[1,"b1"],[2,"b2"],[3,"b3"]].forEach(([i,cls])=>{
+  const d = document.createElement("div");
+  d.className = cls; d.style.width = (100*M.buckets[i]/M.features)+"%";
+  d.title = fmt(M.buckets[i]) + " members";
+  if (M.buckets[i]/M.features > 0.06) d.textContent = fmt(M.buckets[i]);
+  gb.appendChild(d);
+});
+
+// sole-vendor cards
+const col = {chrome:"var(--chrome)", safari:"var(--safari)", firefox:"var(--firefox)"};
+document.getElementById("sole").innerHTML = V.map(v=>`
+  <div class="card">
+    <div class="n" style="color:${col[v]}">${fmt(M.soleN[v])}</div>
+    <div class="who">members only ${v[0].toUpperCase()+v.slice(1)} ships</div>
+    <div class="samp">${D.sole[v].slice(0,6).map(x=>x.replace(/</g,"&lt;")).join("<br/>")}</div>
+  </div>`).join("");
+
+// table
+const specs = D.specs.map(s=>{
+  s.all3 = s.b[3]/s.n; s.thin = 1 - s.all3; s.gap = s.b[0] + s.b[1]; return s;
+});
+function render(){
+  const q = document.getElementById("q").value.toLowerCase();
+  const k = document.getElementById("sort").value;
+  const rows = specs.filter(s=> s.title.toLowerCase().includes(q) || s.sn.includes(q))
+    .sort((a,b)=> k==="t" ? a.title.localeCompare(b.title)
+              : k==="n" ? b.n-a.n : k==="zero" ? b.b[0]-a.b[0]
+              : k==="thin" ? b.thin-a.thin : b.gap-a.gap);
+  document.getElementById("cnt").textContent = rows.length + " specs";
+  document.getElementById("rows").innerHTML = rows.map(s=>{
+    const seg = [0,1,2,3].map(i=>`<div class="b${i}" style="width:${100*s.b[i]/s.n}%"></div>`).join("");
+    return `<tr data-sn="${s.sn}">
+      <td><div class="t">${s.title.replace(/</g,"&lt;")}</div><div class="sn">${s.sn}</div></td>
+      <td class="r pct">${fmt(s.n)}</td>
+      <td><div class="mini">${seg}</div></td>
+      <td class="r pct" style="color:${s.all3>0.8?"var(--ok)":s.all3<0.4?"var(--firefox)":"var(--fg)"}">${pct(s.b[3],s.n)}</td>
+    </tr>`;
+  }).join("");
+}
+document.getElementById("q").oninput = render;
+document.getElementById("sort").onchange = render;
+document.querySelectorAll("th[data-k]").forEach(th=> th.onclick = ()=>{
+  const k = th.dataset.k, sel = document.getElementById("sort");
+  sel.value = [...sel.options].some(o=>o.value===k) ? k : "thin";
+  render();
+});
+render();
+
+document.getElementById("rows").onclick = e => {
+  const tr = e.target.closest("tr"); if (!tr) return;
+  const s = specs.find(x=>x.sn===tr.dataset.sn);
+  document.getElementById("p-title").textContent = s.title;
+  document.getElementById("p-meta").innerHTML =
+    `${s.url?`<a href="${s.url}" target="_blank" rel="noopener">${s.url}</a> · `:""}${fmt(s.n)} members · all 3 engines: ${pct(s.b[3],s.n)} · one engine: ${s.b[1]} · none: ${s.b[0]}`;
+  document.getElementById("p-list").innerHTML = (s.thin.length
+    ? s.thin.map(x=>`<li>${x.replace(/</g,"&lt;")}</li>`).join("")
+    : "<li>none — every documented member ships in at least two engines</li>");
+  document.getElementById("panel").classList.add("on");
+};
+
+document.getElementById("prov").innerHTML =
+  `Data: <a href="https://github.com/w3c/webref">w3c/webref</a> Editor's-Draft crawl (WebIDL + spec titles) ×
+   MDN <a href="https://github.com/mdn/browser-compat-data">browser-compat-data</a> ${M.bcd}. Generated offline, ${new Date().toISOString().slice(0,10)}.
+   <br/>Method: members are only scored where BCD documents them (${fmt(M.features)} of the IDL surface across ${fmt(M.specs)} specs; ${fmt(M.bcdInterfaces)} BCD interfaces exist).
+   "Shipped" = <code>version_added</code> truthy for desktop Chrome / Safari / Firefox and not behind a flag or preview-only.
+   This measures <i>documented availability</i>, not conformance to the text — webref gives the API shape, BCD gives the shipping record.
+   Missing from the count: anything no engine has ever landed (BCD does not track it), and non-IDL surfaces (CSS properties, HTTP headers, elements).`;
+
+// self-test: one runnable check, prints into the footer
+(function(){
+  const eq=(a,b,m)=>{ if(a!==b) throw new Error(m+": "+a+" != "+b); };
+  try{
+    eq(M.buckets.reduce((x,y)=>x+y,0), M.features, "bucket sum");
+    eq(document.querySelectorAll("#rows tr").length, D.specs.length, "row count");
+    document.querySelector("#rows tr").click();
+    eq(document.getElementById("panel").classList.contains("on"), true, "drawer opens");
+    if(!document.getElementById("p-title").textContent) throw new Error("drawer title empty");
+    document.getElementById("panel").classList.remove("on");   // leave the page as a user sees it
+    document.title += " | selftest OK";
+  }catch(e){ document.title += " | SELFTEST FAIL: " + e.message; }
+})();
+</script>
+</body></html>
