@@ -16,7 +16,7 @@ of the three engines.
 
 | | |
 |---|---|
-| 4,964 | API members scored (of 8,194 declared in 1,188 interfaces / 354 IDL files) |
+| 4,964 | API members scored (of 8,194 declared; 1,296 interfaces/namespaces/mixins in 354 IDL files) |
 | 67.1% | shipped by all three engines |
 | 954 | shipped by exactly one engine — Chrome 857, Safari 54, Firefox 43 |
 | 220 | documented in BCD but shipped by no engine by default |
@@ -25,9 +25,9 @@ Ranked by members missing from 2+ engines, the top of the table is WebNN (115 me
 WebXR (73), WebUSB (65), WebXR Layers (56), then HTML (45) and Web Bluetooth (45). HTML is also the
 counter-example: 983 members, 91% in all three.
 
-Second finding, in the subtitle: of 1,188 interfaces that webref extracts from spec text, only 885
-have any MDN compat record. The platform's own machine-readable inventory is 25% incomplete —
-that is a W3C-tooling gap, not a browser gap.
+Second finding, in the subtitle: of 1,296 interfaces, namespaces and mixins that webref extracts
+from spec text, only 943 have any MDN compat record. 27% of the platform's own machine-readable
+inventory does not exist — that is a W3C-tooling gap, not a browser gap.
 
 ## 60-second demo script
 

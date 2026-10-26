@@ -121,7 +121,7 @@ const pct = (a,b) => (100*a/b).toFixed(a/b>0.9?0:1) + "%";
 
 document.getElementById("s-specs").textContent = fmt(M.specs);
 document.getElementById("s-iface").textContent =
-  `${fmt(M.webrefInterfaces)} interfaces are declared in those specs; ${fmt(M.interfaces)} of them have any MDN compat record at all — the rest are scored nowhere.`;
+  `${fmt(M.declared)} interfaces, namespaces and mixins are declared in that WebIDL; ${fmt(M.interfacesWithRecord)} have any MDN compat record at all. Of ${fmt(M.declaredMembers)} declared members, ${fmt(M.features)} could be scored — the rest are measured nowhere.`;
 document.getElementById("t-feat").textContent = fmt(M.features);
 document.getElementById("t-all3").textContent = pct(M.buckets[3], M.features);
 document.getElementById("t-one").textContent = fmt(M.buckets[1]);

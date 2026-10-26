@@ -65,15 +65,19 @@ def look(iface, kind, name):
 
 
 specs, seen, all_ifaces = [], {}, set()
+DECL = re.compile(r"(?:partial\s+)?(?:interface|namespace)\s+(?:mixin\s+)?(\w+)[^{;]*\{")
+declared, allfeat = set(), set()
 for f in sorted(glob.glob(os.path.join(WEBREF, "idl", "*.idl"))):
     sn = os.path.basename(f)[:-4]
     txt = CMT.sub(" ", open(f, encoding="utf8", errors="replace").read())
+    declared.update(DECL.findall(txt))
     hp = os.path.join(WEBREF, "headings", sn + ".json")
     hd = json.load(open(hp, encoding="utf8")) if os.path.exists(hp) else {}
     spec = hd.get("spec") or {}
     feats, ifaces = {}, set()
     for iface, kind, name in body_members(txt):
         all_ifaces.add(iface)
+        allfeat.add((iface, name))
         if iface not in api:
             continue                       # not in BCD: cannot score, excluded
         ifaces.add(iface)
@@ -110,6 +114,8 @@ for (iface, name), s in seen.items():
 out = {"meta": dict(META, specs=len(specs), interfaces=len({i for i, _ in seen}),
                     features=len(seen), buckets=g, perVendor=per,
                     bcdInterfaces=len(api), webrefInterfaces=len(all_ifaces),
+                    declared=len(declared), declaredMembers=len(allfeat),
+                    interfacesWithRecord=len({i for i in all_ifaces if i in api}),
                     soleN={v: len(sole[v]) for v in VENDORS}),
        "sole": {v: sole[v][:200] for v in VENDORS},
        "specs": specs}
